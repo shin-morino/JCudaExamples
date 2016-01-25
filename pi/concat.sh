@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cat *.txt > ../pi.txt
+cat *.txt > pi.txt
 
