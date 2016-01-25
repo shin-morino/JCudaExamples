@@ -142,8 +142,8 @@ public class CUDABruteForceMatcher_naive {
 			pi = Files.readAllBytes(path);
 			timer.record("load pi");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return;
 		}
 
 		cudaMatcher.copyTextToDevice(pi);
@@ -155,7 +155,7 @@ public class CUDABruteForceMatcher_naive {
 		int[] nOffsets = cudaMatcher.search();
 		cudaDeviceSynchronize();
 		timer.record("search");
-		List<Integer> list = IntStream.of(nOffsets).boxed().collect(Collectors.toList());
+		List<Object> list = IntStream.of(nOffsets).boxed().collect(Collectors.toList());
 		System.out.println("Offsets: " + list.toString());
 
 		CUDAEnvHelper.terminate(context, module);

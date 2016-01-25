@@ -169,7 +169,7 @@ public class CUDABruteForceMatcher_opt {
 		int[] nOffsets = cudaMatcher.search();
 		cudaDeviceSynchronize();
 		timer.record("search");
-		List<Integer> list = IntStream.of(nOffsets).boxed().collect(Collectors.toList());
+		List<Object> list = IntStream.of(nOffsets).boxed().collect(Collectors.toList());
 		System.out.println("Offsets: " + list.toString());
 
 		CUDAEnvHelper.terminate(context, module);
