@@ -34,7 +34,7 @@ public class JCudaVectorAdd
         JCudaDriver.setExceptionsEnabled(true);
 
         // Create the PTX file by calling the NVCC
-        String ptxFileName = preparePtxFile("JCudaVectorAddKernel.cu");
+        String ptxFileName = preparePtxFile("kernels/JCudaVectorAddKernel.cu");
 
         // Initialize the driver and create a context for the first device.
         cuInit(0);
