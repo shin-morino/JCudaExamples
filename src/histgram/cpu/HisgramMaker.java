@@ -20,16 +20,19 @@ public class HisgramMaker {
 	public static
 	void main(String[] args) {
 		String filename = "pi/pi.txt";
+
+		BenchmarkTimer timer = new BenchmarkTimer();
+		timer.start("Histgram(CPU) 1 core");
+
 		byte[] pi = null;
 		try {
 			pi = Files.readAllBytes(Paths.get(filename));
 		} catch (IOException e) { }
 		if (pi == null)
 			return;
+		timer.record("load");
 
-		BenchmarkTimer timer = new BenchmarkTimer();
 
-		timer.start("Histgram(CPU) 1 core");
 		int[] histgram = HisgramMaker.make(pi);
 		timer.record("make");
 

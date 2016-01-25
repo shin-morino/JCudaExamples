@@ -97,7 +97,7 @@ public class CUDAHistgramMaker_naive {
 		BenchmarkTimer timer = new BenchmarkTimer();
 
 		
-		timer.start("CUDA Histgram Maker");
+		timer.start("CUDA Histgram Maker (naive)");
 		CUcontext context = CUDAEnvHelper.initAndSetDevice(HistgramCommon.deviceNo);
 		timer.record("initialize");
 		

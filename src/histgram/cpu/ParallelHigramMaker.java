@@ -55,6 +55,10 @@ public class ParallelHigramMaker {
 	public static
 	void main(String[] args) {
 		String filename = "pi/pi.txt";
+
+		BenchmarkTimer timer = new BenchmarkTimer();
+		timer.start("Histgram(CPU) Parallel");
+
 		byte[] pi = null;
 		try {
 			pi = Files.readAllBytes(Paths.get(filename));
@@ -62,13 +66,13 @@ public class ParallelHigramMaker {
 		if (pi == null)
 			return;
 
-		BenchmarkTimer timer = new BenchmarkTimer();
+		timer.record("load");
+		
 
 		/* CPU */
 		int nCores = Runtime.getRuntime().availableProcessors();
 		System.out.println("Creating histgram with " + nCores + " threads.");
 		
-		timer.start("Histgram(CPU) Parallel");
 		int[] histgram= ParallelHigramMaker.make(pi, nCores);
 		timer.record("make");
 

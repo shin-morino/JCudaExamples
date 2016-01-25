@@ -101,7 +101,7 @@ public class CUDAHistgramMaker_SharedMemAtomics2 {
 		BenchmarkTimer timer = new BenchmarkTimer();
 
 		
-		timer.start("CUDA Histgram Maker");
+		timer.start("CUDA Histgram Maker (Shared Mem Atomics, 4-vectorized)");
 		CUcontext context = CUDAEnvHelper.initAndSetDevice(HistgramCommon.deviceNo);
 		timer.record("initialize");
 		

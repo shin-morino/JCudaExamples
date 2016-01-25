@@ -109,7 +109,7 @@ public class CUDAHistgramMaker_GlobalMemAtomics {
 		
 		BenchmarkTimer timer = new BenchmarkTimer();
 		
-		timer.start("CUDA Histgram Maker");
+		timer.start("CUDA Histgram Maker (Global Mem Atomics)");
 		CUcontext context = CUDAEnvHelper.initAndSetDevice(HistgramCommon.deviceNo);
 		timer.record("initialize");
 		
