@@ -59,7 +59,7 @@ public class CUDAHistgramMaker_GlobalMemAtomics {
 		cudaGetDeviceProperties(prop, device[0]);
 		this.gridDim = (prop.multiProcessorCount * 2048) / 64;
 		this.d_partialHistgram = new Pointer();
-		cudaMalloc(this.d_partialHistgram, Sizeof.INT * 256 * this.blockDim);
+		cudaMalloc(this.d_partialHistgram, Sizeof.INT * 256 * this.gridDim);
 		this.d_histgram = new Pointer();
 		cudaMalloc(this.d_histgram, Sizeof.INT * 256);
 	}
@@ -108,14 +108,12 @@ public class CUDAHistgramMaker_GlobalMemAtomics {
 	    JCudaDriver.setExceptionsEnabled(true);
 		
 		BenchmarkTimer timer = new BenchmarkTimer();
-
 		
 		timer.start("CUDA Histgram Maker");
 		CUcontext context = CUDAEnvHelper.initAndSetDevice(HistgramCommon.deviceNo);
 		timer.record("initialize");
 		
 		/* GPU */
-		// CUDAHistgramMaker_naive cudaHistgramMaker = new CUDAHistgramMaker_naive();
 		CUDAHistgramMaker_GlobalMemAtomics cudaHistgramMaker = new CUDAHistgramMaker_GlobalMemAtomics();
 		File file = null;
 		Pointer pi = null;
@@ -154,7 +152,7 @@ public class CUDAHistgramMaker_GlobalMemAtomics {
 		CUDAEnvHelper.terminate(context, module);
 		timer.record("terminate");
 
-		HistgramCommon.outputHistgram("GPU(naive)", histgram);
+		HistgramCommon.outputHistgram("GPU(GlobalAtomics)", histgram);
 		timer.output(System.out);
 	}
 	
