@@ -2,6 +2,7 @@ package histgram.cuda;
 
 import jcuda.driver.CUmodule;
 import jcuda.driver.JCudaDriver;
+import jcuda.runtime.cudaDeviceProp;
 import jcuda.driver.CUcontext;
 import jcuda.driver.CUfunction;
 
@@ -29,6 +30,9 @@ public class CUDAHistgramMaker_SharedMemAtomics {
 	Pointer d_text;
 	long textLength;
 	Pointer d_histgram;
+
+	int gridDim;
+	final int blockDim = 64;
 	
 	public void 
 	compile(CUmodule module, boolean generateDebugInfo) throws IOException {
@@ -45,8 +49,14 @@ public class CUDAHistgramMaker_SharedMemAtomics {
 
 	public void allocateDeviceMemory(long lengthToReserve) {
 		this.d_text = new Pointer();
-		long textLength4 = (lengthToReserve + 3) / 4;
-		cudaMalloc(this.d_text, textLength4 * 4);
+		cudaMalloc(this.d_text, lengthToReserve);
+
+		/* get SM count */
+		int [] device = new int[1];
+		cudaGetDevice(device);
+		cudaDeviceProp prop = new cudaDeviceProp();
+		cudaGetDeviceProperties(prop, device[0]);
+		this.gridDim = (prop.multiProcessorCount * 2048) / 64;
 		this.d_histgram = new Pointer();
 		cudaMalloc(this.d_histgram, Sizeof.INT * 256);
 	}
@@ -60,10 +70,6 @@ public class CUDAHistgramMaker_SharedMemAtomics {
 	void copyTextToDevice(Pointer text, long length) {
 		cudaMemcpyAsync(this.d_text, text, length, cudaMemcpyHostToDevice, null);
 		this.textLength = length;
-		long textLength4 = (length + 3) / 4;
-		long paddingSize = textLength4 * 4 - textLength;
-		Pointer d_textWithOffset = d_text.withByteOffset(this.textLength);
-		cudaMemsetAsync(d_textWithOffset, 0, paddingSize, null);
 	}
 
 	public
@@ -71,19 +77,16 @@ public class CUDAHistgramMaker_SharedMemAtomics {
 		cudaMemsetAsync(this.d_histgram, 0, Sizeof.INT * 256, null);
 
 		/* Set up the kernel parameters */
-		long textLength4 = (textLength + 3) / 4;
 		Pointer kernelParameters = Pointer.to(
-		    Pointer.to(this.d_histgram),
+			Pointer.to(this.d_histgram),
 		    Pointer.to(this.d_text),
-		    Pointer.to(new int[]{(int)textLength4})
+		    Pointer.to(new int[]{(int)this.textLength})
 		);
 		
-		int blockSize = 64;
-		int gridSize = 20480 / blockSize;
 		// Call the kernel function.
 		cuLaunchKernel(this.function, 
-		    gridSize,  1, 1,      // Grid dimension 
-		    blockSize, 1, 1,      // Block dimension
+		    this.gridDim,  1, 1,      // Grid dimension 
+		    this.blockDim, 1, 1,      // Block dimension
 		    0, null, // Shared memory size and stream 
 		    kernelParameters, null // Kernel- and extra parameters
 		);  		
@@ -99,14 +102,12 @@ public class CUDAHistgramMaker_SharedMemAtomics {
 	    JCudaDriver.setExceptionsEnabled(true);
 		
 		BenchmarkTimer timer = new BenchmarkTimer();
-
 		
-		timer.start("CUDA Histgram Maker");
+		timer.start("CUDA Histgram Maker, Shared Mem Atomics");
 		CUcontext context = CUDAEnvHelper.initAndSetDevice(HistgramCommon.deviceNo);
 		timer.record("initialize");
 		
 		/* GPU */
-		// CUDAHistgramMaker_naive cudaHistgramMaker = new CUDAHistgramMaker_naive();
 		CUDAHistgramMaker_SharedMemAtomics cudaHistgramMaker = new CUDAHistgramMaker_SharedMemAtomics();
 		File file = null;
 		Pointer pi = null;
@@ -145,7 +146,7 @@ public class CUDAHistgramMaker_SharedMemAtomics {
 		CUDAEnvHelper.terminate(context, module);
 		timer.record("terminate");
 
-		HistgramCommon.outputHistgram("GPU(naive)", histgram);
+		HistgramCommon.outputHistgram("GPU(Shared Mem Atomics)", histgram);
 		timer.output(System.out);
 	}
 	
